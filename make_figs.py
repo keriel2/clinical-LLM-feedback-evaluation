@@ -1,21 +1,32 @@
-"""Figures for the CAiSE paper. Values copied from the evaluation logs (per-seed where available)."""
+"""Figures 2 and 3 of the paper. Figure 2 is computed from results/; Figure 3 uses values from the training logs."""
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 7, "axes.spines.top": False, "axes.spines.right": False})
 
-# ---- Figure 2: accuracy per condition, seeds as dots ----
+# ---- Figure 2: accuracy per condition, seeds as dots (read from results/) ----
+import json, os
+R = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
+NAMES = ["C1_static", "C2_static_batch4", "C3_loop_feedback_off", "C4_quality_selection",
+         "C5_error_feedback_selection", "C6_full_typed", "C7_full_random_negatives",
+         "C8_full_random_error_types", "C9_full_dpo"]
 conds = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
-m4 = [[60.96, 60.64, 60.96], [62.22, 61.35, 61.12], [61.12, 62.06, 61.04], [61.12, 61.82, 60.88], [61.12, 61.82, 61.04],
-      [61.04, 62.22, 61.19], [61.19, 61.90, 60.80], [60.88, 62.45, 61.35], [60.88]]
-m4ms = [None, None, None, None, None, (61.48, 0.64), (61.30, 0.56), (61.56, 0.81), None]
-m5 = [[51.77, 51.14, 50.35], [50.51, 53.42, 51.37], [52.32, 54.20, 52.00], [52.08, 53.73, 52.40], [52.71, 53.81, 52.40],
-      [50.90, 53.26, 51.69], [52.16, 53.89, 51.92], [50.75, 53.18, 51.53], [49.73]]
-m5ms = [None, None, None, None, None, (51.95, 1.20), (52.66, 1.07), (51.82, 1.24), None]
+def acc(name, bench):
+    out = []
+    for s in (42, 43, 44):
+        f = os.path.join(R, f"{name}_s{s}", "eval_results.json")
+        if os.path.exists(f):
+            out.append(100 * json.load(open(f))[bench]["accuracy"])
+    return out
+m4 = [acc(n, "medqa") for n in NAMES]
+m5 = [acc(n, "biasmedqa") for n in NAMES]          # 'biasmedqa' = five-option MedQA
+base = json.load(open(os.path.join(R, "C0_base", "eval_results.json")))
+ref4, ref5 = 100 * base["medqa"]["accuracy"], 100 * base["biasmedqa"]["accuracy"]
+m4ms = m5ms = [None] * len(conds)
 col = ["#7f7f7f", "#7f7f7f", "#1f77b4", "#2ca02c", "#2ca02c", "#d62728", "#d62728", "#d62728", "#9467bd"]
 fig, axes = plt.subplots(1, 2, figsize=(4.8, 2.3))
-for ax, vals, ms, title, ref in [(axes[0], m4, m4ms, "(a) MedQA, four options", 58.68), (axes[1], m5, m5ms, "(b) MedQA, five options", 52.63)]:
+for ax, vals, ms, title, ref in [(axes[0], m4, m4ms, "(a) MedQA, four options", ref4), (axes[1], m5, m5ms, "(b) MedQA, five options", ref5)]:
     x = np.arange(len(conds))
     for i in x:
         if vals[i] is not None:
@@ -35,6 +46,9 @@ for ax, vals, ms, title, ref in [(axes[0], m4, m4ms, "(a) MedQA, four options", 
 fig.tight_layout(); fig.savefig("fig2_accuracy.pdf")
 
 # ---- Figure 3: feedback starvation ----
+# Values transcribed from the seed-42 training logs (contrastive-step losses), which are not
+# included in this repository because of their size: share of the 1,446 contrastive steps with
+# loss > 1e-3, and the DPO loss sampled every 200 contrastive steps.
 fig, axes = plt.subplots(1, 2, figsize=(4.8, 2.0), gridspec_kw={"width_ratios": [1, 1.2]})
 ax = axes[0]
 names = ["typed,\nmargin", "random,\nmargin", "typed,\nDPO"]

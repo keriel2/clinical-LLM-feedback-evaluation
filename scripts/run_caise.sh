@@ -19,10 +19,10 @@ echo "condition=$COND seed=$SEED gpus=$GPUS tag=$TAG model=$MODEL_PATH batch=${B
 CE_NEGATIVE_MODE=${CE_NEGATIVE_MODE:-typed} CONTRASTIVE_LOSS=${CONTRASTIVE_LOSS:-margin} \
 FMACA_ADAPTER=${FMACA_ADAPTER:-oft} FMACA_LR=${FMACA_LR:-2e-5} \
 FMACA_SEED=$SEED PYTHONHASHSEED=$SEED CUDA_VISIBLE_DEVICES=$GPUS \
-python -u train_one_condition.py --condition "$COND" --model_path "$MODEL_PATH" \
+python -u src/train_one_condition.py --condition "$COND" --model_path "$MODEL_PATH" \
   --epochs ${EPOCHS:-3} --batch_size ${BATCH:-8} --max_per_dataset 10000 \
   --datasets medqa medmcqa pubmedqa --output_dir "$OUT" --seed "$SEED" 2>&1 | tee "$OUT/train.log"
-CUDA_VISIBLE_DEVICES=${GPUS%%,*} python -u evaluate.py --model_path "$MODEL_PATH" \
+CUDA_VISIBLE_DEVICES=${GPUS%%,*} python -u src/evaluate.py --model_path "$MODEL_PATH" \
   --adapter_path "$OUT/$COND/final_adapter" --datasets medqa biasmedqa pubmedqa \
   --max_examples 0 --split test --output_file "$OUT/$COND/eval_results.json" 2>&1 | tee "$OUT/eval.log"
 echo "done=$(date)"

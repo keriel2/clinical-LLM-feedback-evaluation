@@ -10,7 +10,7 @@ Code, per-question predictions and analysis scripts for the paper. All tables an
 | `src/agents/` | Task classifier, example selector, rule-based cognitive-error critic (`evaluation_agent.py`, complete decision rules), feedback updater, training coordinator |
 | `scripts/` | `run_caise.sh` (train and evaluate one condition), queue and status helpers |
 | `results/` | `eval_results.json` (accuracy and per-question predictions) and `compute_profile.json` for every reported run |
-| `analysis/` | `paired_tests.py` (exact McNemar with Holm adjustment), table script |
+| `analysis/` | `run_all_tests.py` (all reported tests and families), `paired_tests.py` (exact McNemar, Holm adjustment, pairing check), table script |
 | `make_figs.py` | Regenerates Figures 2 and 3 |
 
 ## Conditions
@@ -33,18 +33,26 @@ In `eval_results.json`, the key `medqa` is the four-option MedQA test set and `b
 
 ## Reproducing the paper
 
+All commands run from the repository root.
+
 ```bash
-# Train and evaluate one condition (seed 42, GPUs 0,1); models are read from $MODELS_DIR
-MODELS_DIR=/path/to/models bash scripts/run_caise.sh static_coord 42 0,1 qwen
+# 1. Every paired test reported in the paper, with the Holm families defined explicitly
+#    (69 main-model tests; sensitivity analyses as separate families)
+python analysis/run_all_tests.py
 
-# Paired tests, e.g. error-feedback selection vs. feedback-off loop, seed 42
-python analysis/paired_tests.py \
-  C5=results/C5_error_feedback_selection_s42/eval_results.json \
-  C3=results/C3_loop_feedback_off_s42/eval_results.json
-
-# Figures
+# 2. Figures 2 and 3 (Figure 2 is computed from results/)
 python make_figs.py
+
+# 3. Retrain and evaluate one condition (here C3, seed 42, GPUs 0,1); models are read from $MODELS_DIR
+MODELS_DIR=/path/to/models bash scripts/run_caise.sh static_coord 42 0,1 qwen
 ```
+
+Paired tests match questions by identifier and check that each paired identifier has the same gold answer in both runs; all runs were evaluated on the same test files in the same order.
+
+## Known implementation properties
+
+* Supervised batches are left-padded, and the label mask covers the first prompt-length positions of each sequence, so trailing prompt tokens of padded sequences enter the supervised target (`src/trainer.py`). This is shared by all conditions; exposure depends on batch composition.
+* Model outputs are generated for the critic every 500 rounds; on other rounds the coordinator passes reference answers to the critic (`src/agents/coordinator.py`, `_finetune_step`).
 
 ## Data
 
