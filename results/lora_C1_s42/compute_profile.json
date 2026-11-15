@@ -1,0 +1,51 @@
+{
+  "condition": "static_sft",
+  "rounds": 7687,
+  "batch_size": 8,
+  "cuda_visible_devices": "4,5",
+  "n_gpus": 2,
+  "gpus": [
+    {
+      "index_visible": 0,
+      "name": "NVIDIA GeForce RTX 3090",
+      "peak_allocated_gb": 8.29,
+      "peak_reserved_gb": 8.78
+    },
+    {
+      "index_visible": 1,
+      "name": "NVIDIA GeForce RTX 3090",
+      "peak_allocated_gb": 12.65,
+      "peak_reserved_gb": 12.91
+    }
+  ],
+  "wall_seconds": 76330.7,
+  "seconds": {
+    "sft_only": 76328.78,
+    "contrastive_step": 0.0,
+    "generation": 0.0,
+    "critic": 0.0,
+    "selection": 0.0,
+    "feedback": 0.0,
+    "adapter": 0.0,
+    "other": 1.95
+  },
+  "counts": {
+    "supervised_optimizer_steps": 7687,
+    "supervised_examples": 61488,
+    "contrastive_steps": 0,
+    "contrastive_forward_passes_max": 0,
+    "generation_calls": 0,
+    "generated_outputs": 0,
+    "critic_calls": 0,
+    "critic_outputs_scored": 0
+  },
+  "per_round_ms": {
+    "sft_only": 9929.59,
+    "contrastive_step": 0.0,
+    "generation": 0.0,
+    "critic": 0.0,
+    "selection": 0.0,
+    "feedback": 0.0,
+    "adapter": 0.0
+  }
+}
